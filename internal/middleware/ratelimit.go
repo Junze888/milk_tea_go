@@ -40,6 +40,10 @@ func (il *ipLimiter) get(ip string) *rate.Limiter {
 func RateLimit(cfg *config.Config) gin.HandlerFunc {
 	il := newIPLimiter(cfg.RateLimitRPS, cfg.RateBurst)
 	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+			return
+		}
 		ip := c.ClientIP()
 		if !il.get(ip).Allow() {
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "rate limit"})
